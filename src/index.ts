@@ -11,12 +11,14 @@ import rentalRoutes from './routes/rental.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import invoiceRoutes from './routes/invoice.routes';
 import adminRoutes from './routes/admin.routes';
+import mockRoutes from './routes/mock.routes';
 import { setupSwagger } from './config/swagger';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const USE_MOCK = process.env.USE_MOCK === 'true' || true; // Use mock by default
 
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -37,12 +39,17 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/gpus', gpuRoutes);
-app.use('/api/v1/rentals', rentalRoutes);
-app.use('/api/v1/subscriptions', subscriptionRoutes);
-app.use('/api/v1/invoices', invoiceRoutes);
-app.use('/api/v1/admin', adminRoutes);
+if (USE_MOCK) {
+  logger.info('🎭 Using MOCK data (database not required)');
+  app.use('/api/v1', mockRoutes);
+} else {
+  app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/gpus', gpuRoutes);
+  app.use('/api/v1/rentals', rentalRoutes);
+  app.use('/api/v1/subscriptions', subscriptionRoutes);
+  app.use('/api/v1/invoices', invoiceRoutes);
+  app.use('/api/v1/admin', adminRoutes);
+}
 
 // Swagger documentation
 setupSwagger(app);
