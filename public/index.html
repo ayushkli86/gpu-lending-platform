@@ -50,6 +50,7 @@
             <h1>🖥️ GPU Lending Platform</h1>
             <span class="status" id="status">● Connecting...</span>
             <span style="float: right; color: #6b7280;" id="user-info">Not logged in</span>
+            <button id="logout-btn" class="btn btn-secondary" style="display: none; float: right; margin-right: 10px; padding: 8px 20px;" onclick="logout()">Logout</button>
         </div>
 
         <div class="tabs">
@@ -130,7 +131,7 @@
     <script>
         const API_URL = 'http://localhost:3000/api/v1';
         let token = localStorage.getItem('token');
-        let currentUser = null;
+        let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
 
         console.log('GPU Lending Platform UI Loaded');
         console.log('API URL:', API_URL);
@@ -147,6 +148,34 @@
                 document.getElementById('status').textContent = '● Disconnected';
                 document.getElementById('status').style.background = '#ef4444';
             }
+        }
+
+        // Update UI based on login state
+        function updateLoginState() {
+            if (token && currentUser) {
+                document.getElementById('user-info').textContent = `Logged in as ${currentUser.name}`;
+                document.getElementById('logout-btn').style.display = 'inline-block';
+                // Auto-navigate to GPUs tab
+                setTimeout(() => {
+                    document.querySelectorAll('.tab')[2].click();
+                }, 100);
+            } else {
+                document.getElementById('user-info').textContent = 'Not logged in';
+                document.getElementById('logout-btn').style.display = 'none';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            token = null;
+            currentUser = null;
+            document.getElementById('user-info').textContent = 'Not logged in';
+            document.getElementById('logout-btn').style.display = 'none';
+            document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Logged out successfully!</div>';
+            // Navigate to login tab
+            document.querySelectorAll('.tab')[0].click();
         }
 
         // Tab switching
@@ -192,11 +221,9 @@
                     token = data.token;
                     currentUser = data.user;
                     localStorage.setItem('token', token);
-                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Login successful!</div>';
-                    document.getElementById('user-info').textContent = `Logged in as ${data.user.name}`;
-                    setTimeout(() => {
-                        document.querySelectorAll('.tab')[2].click(); // Click GPUs tab
-                    }, 1000);
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Login successful! Session active.</div>';
+                    updateLoginState();
                 } else {
                     document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">❌ ${data.error || 'Login failed'}</div>`;
                 }
@@ -381,9 +408,8 @@
         checkStatus();
         setInterval(checkStatus, 5000);
         
-        if (token) {
-            document.getElementById('user-info').textContent = 'Logged in';
-        }
+        // Check if user is already logged in
+        updateLoginState();
     </script>
 </body>
 </html>
