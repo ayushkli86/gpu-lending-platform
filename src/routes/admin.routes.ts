@@ -6,7 +6,7 @@ const router = Router();
 
 router.use(authenticate, authorize('ADMIN'));
 
-router.get('/stats', async (req, res, next) => {
+router.get('/stats', async (_req, res, next) => {
   try {
     const [totalUsers, totalGPUs, activeRentals, totalRevenue] = await Promise.all([
       prisma.user.count(),
@@ -29,7 +29,7 @@ router.get('/stats', async (req, res, next) => {
   }
 });
 
-router.get('/users', async (req, res, next) => {
+router.get('/users', async (_req, res, next) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -47,7 +47,7 @@ router.get('/users', async (req, res, next) => {
   }
 });
 
-router.get('/rentals', async (req, res, next) => {
+router.get('/rentals', async (_req, res, next) => {
   try {
     const rentals = await prisma.rental.findMany({
       include: {
@@ -63,7 +63,7 @@ router.get('/rentals', async (req, res, next) => {
   }
 });
 
-router.get('/audit-logs', async (req, res, next) => {
+router.get('/audit-logs', async (_req, res, next) => {
   try {
     const logs = await prisma.auditLog.findMany({
       orderBy: { timestamp: 'desc' },

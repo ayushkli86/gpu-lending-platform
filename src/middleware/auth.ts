@@ -9,11 +9,12 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      res.status(401).json({ error: 'No token provided' });
+      return;
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
@@ -24,16 +25,28 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 };
 
-export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
   if (req.user?.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Admin access required' });
+    res.status(403).json({ error: 'Admin access required' });
+    return;
   }
   next();
 };
 
-export const requireOrgOwner = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireOrgOwner = (req: AuthRequest, res: Response, next: NextFunction): void => {
   if (req.user?.role !== 'ORG_OWNER' && req.user?.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Organization owner access required' });
+    res.status(403).json({ error: 'Organization owner access required' });
+    return;
   }
   next();
+};
+
+export const authorize = (...roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      res.status(403).json({ error: 'Insufficient permissions' });
+      return;
+    }
+    next();
+  };
 };

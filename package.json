@@ -12,11 +12,12 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
     "setup": "node scripts/setup.js",
-    "test": "jest",
+    "test": "jest --coverage",
     "test:features": "node scripts/test-all-features.js",
     "lint": "eslint src --ext .ts",
     "dev:loop": "node scripts/dev-loop.js",
-    "automate": "node scripts/master-loop.js"
+    "automate": "node scripts/master-loop.js",
+    "test:watch": "jest --watch"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -33,31 +34,37 @@
   "dependencies": {
     "@prisma/client": "^5.11.0",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
-    "express-rate-limit": "^7.2.0",
-    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "redis": "^4.6.13",
     "stripe": "^14.21.0",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
-    "winston": "^3.12.0",
+    "winston": "^3.19.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.11.30",
+    "@types/supertest": "^7.2.0",
     "@types/swagger-ui-express": "^4.1.6",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^7.3.1",
     "@typescript-eslint/parser": "^7.3.1",
     "eslint": "^8.57.0",
+    "jest": "^30.4.1",
     "prisma": "^5.11.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.9",
     "tsx": "^4.7.1",
     "typescript": "^5.4.3"
   }

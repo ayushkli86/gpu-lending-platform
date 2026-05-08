@@ -1,35 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
 
-export class AppError extends Error {
-  statusCode: number;
-  isOperational: boolean;
-
-  constructor(message: string, statusCode: number) {
-    super(message);
-    this.statusCode = statusCode;
-    this.isOperational = true;
-    Error.captureStackTrace(this, this.constructor);
-  }
+export interface AppError extends Error {
+  statusCode?: number;
+  code?: string;
 }
 
 export const errorHandler = (
-  err: Error | AppError,
-  req: Request,
+  err: AppError,
+  _req: Request,
   res: Response,
-  next: NextFunction
-) => {
-  if (err instanceof AppError) {
-    logger.error(`${err.statusCode} - ${err.message}`, { stack: err.stack });
-    return res.status(err.statusCode).json({
-      error: err.message,
-      status: err.statusCode
-    });
-  }
+  _next: NextFunction
+): void => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal server error';
 
-  logger.error('Unexpected error:', err);
-  res.status(500).json({
-    error: 'Internal server error',
-    status: 500
+  res.status(statusCode).json({
+    error: message,
+    code: err.code || 'INTERNAL_ERROR',
   });
 };
