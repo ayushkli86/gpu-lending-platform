@@ -52,7 +52,42 @@ if (USE_MOCK) {
 }
 
 // Swagger documentation
-setupSwagger(app);
+if (USE_MOCK) {
+  // Simplified swagger for mock mode
+  app.get('/api-docs', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>GPU Lending Platform API</title>
+      <style>body{font-family:Arial;padding:40px;background:#f5f5f5;}
+      .container{max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:10px;}
+      h1{color:#667eea;}h2{color:#333;border-bottom:2px solid #667eea;padding-bottom:10px;}
+      .endpoint{background:#f9f9f9;padding:15px;margin:10px 0;border-left:4px solid #667eea;}
+      .method{display:inline-block;padding:5px 10px;border-radius:5px;color:white;font-weight:bold;}
+      .get{background:#61affe;}.post{background:#49cc90;}</style></head>
+      <body><div class="container">
+      <h1>🖥️ GPU Lending Platform API</h1>
+      <p>Mock Mode - All endpoints available at <code>http://localhost:3000/api/v1</code></p>
+      <h2>Authentication</h2>
+      <div class="endpoint"><span class="method post">POST</span> /auth/login - Login user</div>
+      <div class="endpoint"><span class="method post">POST</span> /auth/register - Register user</div>
+      <h2>GPUs</h2>
+      <div class="endpoint"><span class="method get">GET</span> /gpus - List all GPUs</div>
+      <div class="endpoint"><span class="method get">GET</span> /gpus/servers - List GPU servers</div>
+      <div class="endpoint"><span class="method get">GET</span> /gpus/available - Available GPUs</div>
+      <h2>Rentals</h2>
+      <div class="endpoint"><span class="method get">GET</span> /rentals/my-rentals - My rentals</div>
+      <h2>Subscriptions</h2>
+      <div class="endpoint"><span class="method get">GET</span> /subscriptions/plans - List plans</div>
+      <div class="endpoint"><span class="method post">POST</span> /subscriptions - Subscribe</div>
+      <h2>Admin</h2>
+      <div class="endpoint"><span class="method get">GET</span> /admin/stats - Platform stats</div>
+      </div></body></html>
+    `);
+  });
+} else {
+  setupSwagger(app);
+}
 
 // Error handling
 app.use(errorHandler);

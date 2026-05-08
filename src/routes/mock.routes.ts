@@ -53,6 +53,14 @@ router.get('/gpus', (req, res) => {
   res.json({ gpus: mockGPUs, count: mockGPUs.length });
 });
 
+router.get('/gpus/servers', (req, res) => {
+  const servers = [
+    { id: '1', name: 'GPU Server 1', hostname: 'gpu-server-01', ipAddress: '192.168.1.100', location: 'US-East', gpus: mockGPUs.slice(0, 2) },
+    { id: '2', name: 'GPU Server 2', hostname: 'gpu-server-02', ipAddress: '192.168.1.101', location: 'US-West', gpus: mockGPUs.slice(2, 4) }
+  ];
+  res.json({ servers });
+});
+
 router.get('/gpus/available', (req, res) => {
   const available = mockGPUs.filter(g => g.status === 'AVAILABLE');
   res.json({ gpus: available, count: available.length });
