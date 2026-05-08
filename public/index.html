@@ -132,6 +132,10 @@
         let token = localStorage.getItem('token');
         let currentUser = null;
 
+        console.log('GPU Lending Platform UI Loaded');
+        console.log('API URL:', API_URL);
+        console.log('Stored token:', token ? 'Found' : 'None');
+
         // Check server status
         async function checkStatus() {
             try {
@@ -147,10 +151,18 @@
 
         // Tab switching
         function showTab(tabName) {
+            console.log('Switching to tab:', tabName);
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            
+            // Find and activate the clicked tab
+            const tabs = document.querySelectorAll('.tab');
+            const tabNames = ['login', 'register', 'gpus', 'rentals', 'subscriptions', 'admin'];
+            const index = tabNames.indexOf(tabName);
+            if (index >= 0 && tabs[index]) {
+                tabs[index].classList.add('active');
+            }
 
             if (tabName === 'gpus') loadGPUs();
             if (tabName === 'rentals') loadRentals();
@@ -163,26 +175,34 @@
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             
+            console.log('Attempting login...', { email });
+            
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
+                
+                console.log('Response status:', res.status);
                 const data = await res.json();
+                console.log('Response data:', data);
                 
                 if (res.ok) {
                     token = data.token;
                     currentUser = data.user;
                     localStorage.setItem('token', token);
-                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">Login successful!</div>';
+                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Login successful!</div>';
                     document.getElementById('user-info').textContent = `Logged in as ${data.user.name}`;
-                    setTimeout(() => showTab('gpus'), 1000);
+                    setTimeout(() => {
+                        document.querySelectorAll('.tab')[2].click(); // Click GPUs tab
+                    }, 1000);
                 } else {
-                    document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+                    document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">❌ ${data.error || 'Login failed'}</div>`;
                 }
             } catch (error) {
-                document.getElementById('login-alert').innerHTML = '<div class="alert alert-error">Connection error</div>';
+                console.error('Login error:', error);
+                document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">❌ Connection error: ${error.message}</div>`;
             }
         }
 
