@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const LOOP_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const LOOP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 const LOG_DIR = path.join(__dirname, '..', 'logs');
 const LOOP_LOG = path.join(LOG_DIR, 'dev-loop.log');
 

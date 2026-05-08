@@ -10,9 +10,14 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "setup": "node scripts/setup.js",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "dev:loop": "node scripts/dev-loop.js"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": ["gpu", "lending", "rental", "cloud", "infrastructure"],
   "author": "Ayush Katuwal",
