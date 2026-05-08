@@ -1,8 +1,14 @@
-import { PrismaClient, SpotRequestStatus } from '@prisma/client';
+import { SpotRequestStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
 
 export class SpotService {
-  // Create spot instance request
+  // Calculate spot price (65% discount)
+  calculateSpotPrice(onDemandPrice: number): number {
+    const discount = 0.65;
+    return onDemandPrice * (1 - discount);
+  }
+
+  // Create spot request
   async createRequest(data: {
     userId: string;
     gpuType: string;
@@ -20,65 +26,11 @@ export class SpotService {
     });
   }
 
-  // Calculate spot discount (65% off)
-  calculateDiscount(originalPrice: number): number {
-    return originalPrice * 0.35; // 65% discount = pay 35%
-  }
-
   // List user's spot requests
   async listRequests(userId: string) {
     return prisma.spotRequest.findMany({
       where: { userId },
       include: { rental: true },
-    });
-  }
-
-  // Cancel spot request
-  async cancelRequest(requestId: string) {
-    return prisma.spotRequest.updateMany({
-      where: { id: requestId },
-      data: { status: SpotRequestStatus.CANCELLED },
-    });
-  }
-}
-
-const prisma = new PrismaClient();
-
-export class SpotService {
-  // Calculate spot price (60-70% discount)
-  calculateSpotPrice(onDemandPrice: number): number {
-    const discount = 0.65; // 65% discount
-    return onDemandPrice * (1 - discount);
-  }
-
-  // Create spot request
-  async createRequest(data: {
-    userId: string;
-    gpuType: string;
-    maxPrice: number;
-    duration: number;
-  }) {
-    const spotPrice = this.calculateSpotPrice(data.maxPrice);
-    
-    return prisma.spotRequest.create({
-      data: {
-        userId: data.userId,
-        gpuType: data.gpuType,
-        maxPrice: data.maxPrice,
-        duration: data.duration,
-        status: 'PENDING',
-        metadata: {
-          spotPrice,
-          estimatedSavings: data.maxPrice - spotPrice,
-        },
-      },
-    });
-  }
-
-  // List user's spot requests
-  async listRequests(userId: string) {
-    return prisma.spotRequest.findMany({
-      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -87,7 +39,7 @@ export class SpotService {
   async cancelRequest(id: string, userId: string) {
     return prisma.spotRequest.updateMany({
       where: { id, userId },
-      data: { status: 'CANCELLED' },
+      data: { status: SpotRequestStatus.CANCELLED },
     });
   }
 
@@ -96,7 +48,7 @@ export class SpotService {
     return prisma.spotRequest.update({
       where: { id: requestId },
       data: {
-        status: 'INTERRUPTED',
+        status: SpotRequestStatus.INTERRUPTED,
         interruptedAt: new Date(),
         checkpointUrl,
       },

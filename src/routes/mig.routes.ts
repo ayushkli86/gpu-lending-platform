@@ -42,7 +42,7 @@ router.get('/gpus/:id/instances', authenticate, async (req: AuthRequest, res) =>
 });
 
 // List MIG profiles
-router.get('/profiles', authenticate, async (req: AuthRequest, res) => {
+router.get('/profiles', authenticate, async (_req: AuthRequest, res) => {
   try {
     const profiles = migService.getProfiles();
     res.json({ success: true, data: profiles });
