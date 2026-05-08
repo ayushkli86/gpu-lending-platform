@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '../utils/prisma';
-import { AppError } from '../middleware/errorHandler';
+import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 
 const router = Router();
