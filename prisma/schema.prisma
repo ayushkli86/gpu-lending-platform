@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ORG_OWNER
+  USER
+}
+
+enum GPUStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+  OFFLINE
+}
+
+enum RentalStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  CRYPTO
+  MANUAL
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          UserRole @default(USER)
+  organizationId String?
+  organization  Organization? @relation(fields: [organizationId], references: [id])
+  apiKeys       ApiKey[]
+  rentals       Rental[]
+  subscriptions Subscription[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  users     User[]
+  rentals   Rental[]
+  subscriptions Subscription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([key])
+  @@index([userId])
+}
+
+model GPUServer {
+  id          String   @id @default(uuid())
+  name        String
+  hostname    String
+  ipAddress   String
+  location    String?
+  gpus        GPU[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([hostname])
+}
+
+model GPU {
+  id            String     @id @default(uuid())
+  serverId      String
+  server        GPUServer  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  model         String
+  memory        Int
+  computeCapability String
+  pcieBusId     String
+  status        GPUStatus  @default(AVAILABLE)
+  clusterId     String?
+  cluster       GPUCluster? @relation(fields: [clusterId], references: [id])
+  rentals       Rental[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([serverId])
+  @@index([status])
+  @@index([clusterId])
+}
+
+model GPUCluster {
+  id        String   @id @default(uuid())
+  name      String
+  gpus      GPU[]
+  rentals   Rental[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Rental {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  gpuId          String?
+  gpu            GPU?         @relation(fields: [gpuId], references: [id])
+  clusterId      String?
+  cluster        GPUCluster?  @relation(fields: [clusterId], references: [id])
+  status         RentalStatus @default(PENDING)
+  startTime      DateTime
+  endTime        DateTime?
+  actualEndTime  DateTime?
+  hourlyRate     Float
+  usageEvents    UsageEvent[]
+  invoices       Invoice[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([gpuId])
+}
+
+model Subscription {
+  id             String             @id @default(uuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id])
+  organizationId String?
+  organization   Organization?      @relation(fields: [organizationId], references: [id])
+  planId         String
+  plan           SubscriptionPlan   @relation(fields: [planId], references: [id])
+  status         SubscriptionStatus @default(TRIAL)
+  startDate      DateTime
+  endDate        DateTime?
+  renewalDate    DateTime
+  invoices       Invoice[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model SubscriptionPlan {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  monthlyPrice  Float
+  gpuAllocation Int
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model UsageEvent {
+  id          String   @id @default(uuid())
+  rentalId    String
+  rental      Rental   @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  eventType   String
+  utilization Float?
+  dataTransfer Float?
+  timestamp   DateTime @default(now())
+
+  @@index([rentalId])
+  @@index([timestamp])
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  invoiceNumber  String        @unique
+  userId         String
+  rentalId       String?
+  rental         Rental?       @relation(fields: [rentalId], references: [id])
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  status         InvoiceStatus @default(DRAFT)
+  amount         Float
+  tax            Float         @default(0)
+  totalAmount    Float
+  dueDate        DateTime
+  paidAt         DateTime?
+  payments       Payment[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([invoiceNumber])
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  invoiceId       String
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount          Float
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionId   String?
+  stripePaymentId String?
+  cryptoAddress   String?
+  metadata        Json?
+  processedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([invoiceId])
+  @@index([status])
+}
+
+model PricingPlan {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  hourlyRate  Float
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  resource  String
+  metadata  Json?
+  ipAddress String?
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([timestamp])
+}
