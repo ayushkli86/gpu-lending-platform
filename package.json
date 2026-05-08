@@ -13,6 +13,7 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "setup": "node scripts/setup.js",
     "test": "jest",
+    "test:features": "node scripts/test-all-features.js",
     "lint": "eslint src --ext .ts",
     "dev:loop": "node scripts/dev-loop.js",
     "automate": "node scripts/master-loop.js"
