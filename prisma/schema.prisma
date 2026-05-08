@@ -27,6 +27,20 @@ enum RentalStatus {
   CANCELLED
 }
 
+enum PricingTier {
+  ON_DEMAND
+  RESERVED
+  SPOT
+}
+
+enum SpotRequestStatus {
+  PENDING
+  ACTIVE
+  INTERRUPTED
+  COMPLETED
+  CANCELLED
+}
+
 enum SubscriptionStatus {
   TRIAL
   ACTIVE
@@ -120,13 +134,30 @@ model GPU {
   status        GPUStatus  @default(AVAILABLE)
   clusterId     String?
   cluster       GPUCluster? @relation(fields: [clusterId], references: [id])
+  migEnabled    Boolean    @default(false)
+  migProfile    String?
   rentals       Rental[]
+  migInstances  MIGInstance[]
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
   @@index([serverId])
   @@index([status])
   @@index([clusterId])
+}
+
+model MIGInstance {
+  id        String    @id @default(uuid())
+  gpuId     String
+  gpu       GPU       @relation(fields: [gpuId], references: [id], onDelete: Cascade)
+  profile   String
+  status    GPUStatus @default(AVAILABLE)
+  rentals   Rental[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([gpuId])
+  @@index([status])
 }
 
 model GPUCluster {
@@ -148,19 +179,62 @@ model Rental {
   gpu            GPU?         @relation(fields: [gpuId], references: [id])
   clusterId      String?
   cluster        GPUCluster?  @relation(fields: [clusterId], references: [id])
+  migInstanceId  String?
+  migInstance    MIGInstance? @relation(fields: [migInstanceId], references: [id])
   status         RentalStatus @default(PENDING)
+  pricingTier    PricingTier  @default(ON_DEMAND)
   startTime      DateTime
   endTime        DateTime?
   actualEndTime  DateTime?
   hourlyRate     Float
+  spotMaxPrice   Float?
+  checkpointUrl  String?
   usageEvents    UsageEvent[]
   invoices       Invoice[]
+  spotRequests   SpotRequest[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@index([userId])
   @@index([status])
   @@index([gpuId])
+  @@index([pricingTier])
+}
+
+model SpotRequest {
+  id            String            @id @default(uuid())
+  userId        String
+  rentalId      String?
+  rental        Rental?           @relation(fields: [rentalId], references: [id])
+  gpuType       String
+  maxPrice      Float
+  duration      Int
+  status        SpotRequestStatus @default(PENDING)
+  interruptedAt DateTime?
+  checkpointUrl String?
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([gpuType])
+}
+
+model GPUMetrics {
+  id           String   @id @default(uuid())
+  gpuId        String
+  utilization  Float
+  memoryUsed   Int
+  memoryTotal  Int
+  temperature  Float
+  powerDraw    Float
+  fanSpeed     Float?
+  clockSpeed   Int?
+  timestamp    DateTime @default(now())
+
+  @@index([gpuId])
+  @@index([timestamp])
 }
 
 model Subscription {
