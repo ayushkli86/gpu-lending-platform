@@ -1,40 +1,46 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, AuthRequest } from '../middleware/auth';
+import { metricsService } from '../services/metrics.service';
 
 const router = Router();
 
 // Get GPU metrics
-router.get('/gpus/:id', authenticate, async (req, res) => {
+router.get('/gpus/:id', authenticate, async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
-    res.json({
-      success: true,
-      data: {
-        gpuId: id,
-        utilization: Math.random() * 100,
-        memoryUsed: Math.floor(Math.random() * 80000),
-        memoryTotal: 80000,
-        temperature: 65 + Math.random() * 20,
-        powerDraw: 250 + Math.random() * 100,
-        timestamp: new Date()
-      }
-    });
+    const metrics = await metricsService.getLatestMetrics(req.params.id);
+    res.json({ success: true, data: metrics });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Get metrics history
-router.get('/gpus/:id/history', authenticate, async (req, res) => {
+router.get('/gpus/:id/history', authenticate, async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
-    const history = Array.from({ length: 10 }, (_, i) => ({
-      utilization: Math.random() * 100,
-      memoryUsed: Math.floor(Math.random() * 80000),
-      temperature: 65 + Math.random() * 20,
-      timestamp: new Date(Date.now() - i * 60000)
-    }));
+    const hours = parseInt(req.query.hours as string) || 24;
+    const history = await metricsService.getMetricsHistory(req.params.id, hours);
     res.json({ success: true, data: history });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get aggregated metrics
+router.get('/gpus/:id/aggregated', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const hours = parseInt(req.query.hours as string) || 24;
+    const aggregated = await metricsService.getAggregatedMetrics(req.params.id, hours);
+    res.json({ success: true, data: aggregated });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get alerts
+router.get('/gpus/:id/alerts', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const alerts = await metricsService.checkAlerts(req.params.id);
+    res.json({ success: true, data: alerts });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
