@@ -4,7 +4,7 @@
   "description": "Multi-tenant GPU lending platform with comprehensive backend",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
@@ -17,7 +17,10 @@
     "lint": "eslint src --ext .ts",
     "dev:loop": "node scripts/dev-loop.js",
     "automate": "node scripts/master-loop.js",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
