@@ -70,76 +70,77 @@ enum PaymentMethod {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password      String
-  name          String
-  role          UserRole @default(USER)
+  id             String         @id @default(uuid())
+  email          String         @unique
+  password       String
+  name           String
+  role           UserRole       @default(USER)
   organizationId String?
-  organization  Organization? @relation(fields: [organizationId], references: [id])
-  apiKeys       ApiKey[]
-  rentals       Rental[]
-  subscriptions Subscription[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  organization   Organization?  @relation(fields: [organizationId], references: [id])
+  apiKeys        ApiKey[]
+  rentals        Rental[]
+  subscriptions  Subscription[]
+  spotRequests   SpotRequest[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([email])
   @@index([organizationId])
 }
 
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  users     User[]
-  rentals   Rental[]
+  id            String         @id @default(uuid())
+  name          String
+  users         User[]
+  rentals       Rental[]
   subscriptions Subscription[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model ApiKey {
-  id        String   @id @default(uuid())
-  key       String   @unique
+  id        String    @id @default(uuid())
+  key       String    @unique
   name      String
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   lastUsed  DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([key])
   @@index([userId])
 }
 
 model GPUServer {
-  id          String   @id @default(uuid())
-  name        String
-  hostname    String
-  ipAddress   String
-  location    String?
-  gpus        GPU[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  hostname  String
+  ipAddress String
+  location  String?
+  gpus      GPU[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([hostname])
 }
 
 model GPU {
-  id            String     @id @default(uuid())
-  serverId      String
-  server        GPUServer  @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  model         String
-  memory        Int
+  id                String        @id @default(uuid())
+  serverId          String
+  server            GPUServer     @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  model             String
+  memory            Int
   computeCapability String
-  pcieBusId     String
-  status        GPUStatus  @default(AVAILABLE)
-  clusterId     String?
-  cluster       GPUCluster? @relation(fields: [clusterId], references: [id])
-  migEnabled    Boolean    @default(false)
-  migProfile    String?
-  rentals       Rental[]
-  migInstances  MIGInstance[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  pcieBusId         String
+  status            GPUStatus     @default(AVAILABLE)
+  clusterId         String?
+  cluster           GPUCluster?   @relation(fields: [clusterId], references: [id])
+  migEnabled        Boolean       @default(false)
+  migProfile        String?
+  rentals           Rental[]
+  migInstances      MIGInstance[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@index([serverId])
   @@index([status])
@@ -170,19 +171,19 @@ model GPUCluster {
 }
 
 model Rental {
-  id             String       @id @default(uuid())
+  id             String        @id @default(uuid())
   userId         String
-  user           User         @relation(fields: [userId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
   gpuId          String?
-  gpu            GPU?         @relation(fields: [gpuId], references: [id])
+  gpu            GPU?          @relation(fields: [gpuId], references: [id])
   clusterId      String?
-  cluster        GPUCluster?  @relation(fields: [clusterId], references: [id])
+  cluster        GPUCluster?   @relation(fields: [clusterId], references: [id])
   migInstanceId  String?
-  migInstance    MIGInstance? @relation(fields: [migInstanceId], references: [id])
-  status         RentalStatus @default(PENDING)
-  pricingTier    PricingTier  @default(ON_DEMAND)
+  migInstance    MIGInstance?  @relation(fields: [migInstanceId], references: [id])
+  status         RentalStatus  @default(PENDING)
+  pricingTier    PricingTier   @default(ON_DEMAND)
   startTime      DateTime
   endTime        DateTime?
   actualEndTime  DateTime?
@@ -192,8 +193,8 @@ model Rental {
   usageEvents    UsageEvent[]
   invoices       Invoice[]
   spotRequests   SpotRequest[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -204,6 +205,7 @@ model Rental {
 model SpotRequest {
   id            String            @id @default(uuid())
   userId        String
+  user          User              @relation(fields: [userId], references: [id])
   rentalId      String?
   rental        Rental?           @relation(fields: [rentalId], references: [id])
   gpuType       String
@@ -222,16 +224,16 @@ model SpotRequest {
 }
 
 model GPUMetrics {
-  id           String   @id @default(uuid())
-  gpuId        String
-  utilization  Float
-  memoryUsed   Int
-  memoryTotal  Int
-  temperature  Float
-  powerDraw    Float
-  fanSpeed     Float?
-  clockSpeed   Int?
-  timestamp    DateTime @default(now())
+  id          String   @id @default(uuid())
+  gpuId       String
+  utilization Float
+  memoryUsed  Int
+  memoryTotal Int
+  temperature Float
+  powerDraw   Float
+  fanSpeed    Float?
+  clockSpeed  Int?
+  timestamp   DateTime @default(now())
 
   @@index([gpuId])
   @@index([timestamp])
@@ -269,13 +271,13 @@ model SubscriptionPlan {
 }
 
 model UsageEvent {
-  id          String   @id @default(uuid())
-  rentalId    String
-  rental      Rental   @relation(fields: [rentalId], references: [id], onDelete: Cascade)
-  eventType   String
-  utilization Float?
+  id           String   @id @default(uuid())
+  rentalId     String
+  rental       Rental   @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  eventType    String
+  utilization  Float?
   dataTransfer Float?
-  timestamp   DateTime @default(now())
+  timestamp    DateTime @default(now())
 
   @@index([rentalId])
   @@index([timestamp])
