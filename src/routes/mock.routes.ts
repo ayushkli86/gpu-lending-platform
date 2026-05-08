@@ -28,12 +28,19 @@ const mockToken = 'mock-jwt-token-12345';
 // Mock auth
 router.post('/auth/login', (req, res) => {
   const { email, password } = req.body;
-  if (email === 'user@example.com' && password === 'user123') {
-    res.json({ token: mockToken, user: mockUser, message: 'Login successful' });
-  } else if (email === 'admin@gpulending.com' && password === 'admin123') {
-    res.json({ token: mockToken, user: { ...mockUser, role: 'ADMIN', name: 'Admin User' }, message: 'Login successful' });
+  
+  // Accept any credentials for testing
+  if (email && password) {
+    const isAdmin = email.includes('admin');
+    const user = {
+      id: '1',
+      email: email,
+      name: email.split('@')[0],
+      role: isAdmin ? 'ADMIN' : 'USER'
+    };
+    res.json({ token: mockToken, user, message: 'Login successful' });
   } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+    res.status(401).json({ error: 'Email and password required' });
   }
 });
 
