@@ -38,6 +38,18 @@ router.post('/auth/login', (req, res) => {
       name: email.split('@')[0],
       role: isAdmin ? 'ADMIN' : 'USER'
     };
+    
+    // Set cookies for session tracking
+    res.cookie('auth_token', mockToken, { 
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: false, // Allow JS access for demo
+      sameSite: 'strict'
+    });
+    res.cookie('user_email', email, { 
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: false
+    });
+    
     res.json({ token: mockToken, user, message: 'Login successful' });
   } else {
     res.status(401).json({ error: 'Email and password required' });

@@ -137,6 +137,51 @@
         console.log('API URL:', API_URL);
         console.log('Stored token:', token ? 'Found' : 'None');
 
+        // Cookie utilities
+        function setCookie(name, value, days = 7) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+            console.log(`Cookie set: ${name}`);
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+            console.log(`Cookie deleted: ${name}`);
+        }
+
+        // Initialize from cookies if available
+        if (!token) {
+            token = getCookie('auth_token');
+            if (token) {
+                localStorage.setItem('token', token);
+                console.log('Token restored from cookie');
+            }
+        }
+        if (!currentUser) {
+            const userCookie = getCookie('user_data');
+            if (userCookie) {
+                try {
+                    currentUser = JSON.parse(decodeURIComponent(userCookie));
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    console.log('User data restored from cookie');
+                } catch (e) {
+                    console.error('Failed to parse user cookie');
+                }
+            }
+        }
+
         // Check server status
         async function checkStatus() {
             try {
@@ -167,13 +212,24 @@
 
         // Logout function
         function logout() {
+            // Clear localStorage
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            
+            // Clear cookies
+            deleteCookie('auth_token');
+            deleteCookie('user_data');
+            deleteCookie('user_email');
+            deleteCookie('login_time');
+            
             token = null;
             currentUser = null;
             document.getElementById('user-info').textContent = 'Not logged in';
             document.getElementById('logout-btn').style.display = 'none';
-            document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Logged out successfully!</div>';
+            document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Logged out successfully! All cookies cleared.</div>';
+            
+            console.log('Session cleared from localStorage and cookies');
+            
             // Navigate to login tab
             document.querySelectorAll('.tab')[0].click();
         }
@@ -220,9 +276,20 @@
                 if (res.ok) {
                     token = data.token;
                     currentUser = data.user;
+                    
+                    // Save to localStorage
                     localStorage.setItem('token', token);
                     localStorage.setItem('user', JSON.stringify(currentUser));
-                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Login successful! Session active.</div>';
+                    
+                    // Save to cookies (7 days expiry)
+                    setCookie('auth_token', token, 7);
+                    setCookie('user_data', encodeURIComponent(JSON.stringify(currentUser)), 7);
+                    setCookie('user_email', currentUser.email, 7);
+                    setCookie('login_time', new Date().toISOString(), 7);
+                    
+                    console.log('Session saved to localStorage and cookies');
+                    
+                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Login successful! Session active with cookies.</div>';
                     updateLoginState();
                 } else {
                     document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">❌ ${data.error || 'Login failed'}</div>`;
