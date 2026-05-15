@@ -113,4 +113,75 @@ router.get('/admin/stats', (req, res) => {
   });
 });
 
+// ─── Feature 1: GPU Waitlist ───────────────────────────────────────────────
+const waitlist: { id: string; userId: string; gpuId: string; joinedAt: string; position: number }[] = [];
+
+// Join waitlist for a specific GPU
+router.post('/gpus/:gpuId/waitlist', (req, res) => {
+  const { gpuId } = req.params;
+  const { userId = 'user-1' } = req.body;
+
+  const gpu = mockGPUs.find(g => g.id === gpuId);
+  if (!gpu) return res.status(404).json({ error: 'GPU not found' });
+
+  const alreadyJoined = waitlist.find(w => w.gpuId === gpuId && w.userId === userId);
+  if (alreadyJoined) return res.status(409).json({ error: 'Already on waitlist', entry: alreadyJoined });
+
+  const position = waitlist.filter(w => w.gpuId === gpuId).length + 1;
+  const entry = { id: `wl-${Date.now()}`, userId, gpuId, joinedAt: new Date().toISOString(), position };
+  waitlist.push(entry);
+
+  res.status(201).json({ message: 'Added to waitlist', entry });
+});
+
+// Get waitlist for a GPU
+router.get('/gpus/:gpuId/waitlist', (req, res) => {
+  const { gpuId } = req.params;
+  const gpu = mockGPUs.find(g => g.id === gpuId);
+  if (!gpu) return res.status(404).json({ error: 'GPU not found' });
+
+  const entries = waitlist.filter(w => w.gpuId === gpuId);
+  res.json({ gpuId, gpu: gpu.model, waitlist: entries, count: entries.length });
+});
+
+// Leave waitlist
+router.delete('/gpus/:gpuId/waitlist', (req, res) => {
+  const { gpuId } = req.params;
+  const { userId = 'user-1' } = req.body;
+
+  const idx = waitlist.findIndex(w => w.gpuId === gpuId && w.userId === userId);
+  if (idx === -1) return res.status(404).json({ error: 'Not on waitlist' });
+
+  waitlist.splice(idx, 1);
+  res.json({ message: 'Removed from waitlist' });
+});
+
+// ─── Feature 2: GPU Price Comparison ──────────────────────────────────────
+const gpuPricing = [
+  { model: 'NVIDIA A100', memory: 40960, hourlyRate: 3.20, dailyRate: 64.00, monthlyRate: 1600.00, computeCapability: '8.0', availability: 'HIGH' },
+  { model: 'NVIDIA H100', memory: 80960, hourlyRate: 5.50, dailyRate: 110.00, monthlyRate: 2750.00, computeCapability: '9.0', availability: 'LOW' },
+  { model: 'NVIDIA RTX 4090', memory: 24576, hourlyRate: 1.80, dailyRate: 36.00, monthlyRate: 900.00, computeCapability: '8.9', availability: 'MEDIUM' },
+  { model: 'NVIDIA V100', memory: 32768, hourlyRate: 2.10, dailyRate: 42.00, monthlyRate: 1050.00, computeCapability: '7.0', availability: 'HIGH' },
+];
+
+// Compare all GPU prices
+router.get('/gpus/compare', (req, res) => {
+  const { sortBy = 'hourlyRate', order = 'asc', minMemory, maxPrice } = req.query;
+
+  let results = [...gpuPricing];
+
+  if (minMemory) results = results.filter(g => g.memory >= Number(minMemory));
+  if (maxPrice) results = results.filter(g => g.hourlyRate <= Number(maxPrice));
+
+  results.sort((a, b) => {
+    const field = sortBy as keyof typeof a;
+    const valA = a[field] as number;
+    const valB = b[field] as number;
+    return order === 'desc' ? valB - valA : valA - valB;
+  });
+
+  const best = results[0] || null;
+  res.json({ comparison: results, count: results.length, bestValue: best });
+});
+
 export default router;
