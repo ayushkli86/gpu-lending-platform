@@ -1,5 +1,4 @@
 import { logger } from '../utils/logger';
-import prisma from '../utils/prisma';
 
 export interface GPUMetrics {
   gpuId: string;

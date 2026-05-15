@@ -6,7 +6,7 @@ import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
 
-router.get('/plans', async (req, res, next) => {
+router.get('/plans', async (_req, res, next) => {
   try {
     const plans = await prisma.subscriptionPlan.findMany();
     res.json({ plans });

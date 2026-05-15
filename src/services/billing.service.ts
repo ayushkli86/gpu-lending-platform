@@ -2,25 +2,23 @@ import prisma from '../utils/prisma';
 import { logger } from '../utils/logger';
 
 export class BillingService {
-  async generateInvoice(rentalId: string): Promise<any> {
+  async generateRentalInvoice(rentalId: string): Promise<ReturnType<typeof prisma.invoice.create>> {
     const rental = await prisma.rental.findUnique({
       where: { id: rentalId },
-      include: { usageEvents: true, user: true }
+      include: { user: { select: { id: true, email: true } } },
     });
+    if (!rental) throw new Error(`Rental ${rentalId} not found`);
 
-    if (!rental) {
-      throw new Error('Rental not found');
-    }
+    const end = rental.actualEndTime ?? new Date();
+    const durationHours = Math.max(
+      (end.getTime() - rental.startTime.getTime()) / 3_600_000,
+      0
+    );
 
-    const duration = rental.actualEndTime 
-      ? (rental.actualEndTime.getTime() - rental.startTime.getTime()) / (1000 * 60 * 60)
-      : 0;
-
-    const amount = duration * rental.hourlyRate;
-    const tax = amount * 0.1; // 10% tax
-    const totalAmount = amount + tax;
-
-    const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    const amount = parseFloat((durationHours * rental.hourlyRate).toFixed(2));
+    const tax = parseFloat((amount * 0.1).toFixed(2));
+    const totalAmount = parseFloat((amount + tax).toFixed(2));
+    const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
     const invoice = await prisma.invoice.create({
       data: {
@@ -31,46 +29,25 @@ export class BillingService {
         amount,
         tax,
         totalAmount,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-      }
+        dueDate: new Date(Date.now() + 7 * 86_400_000),
+      },
     });
 
-    logger.info(`Invoice generated: ${invoiceNumber} for rental ${rentalId}`);
+    logger.info(`Invoice ${invoiceNumber} generated for rental ${rentalId} — $${totalAmount}`);
     return invoice;
   }
 
-  async calculateUsageCost(rentalId: string): Promise<number> {
-    const events = await prisma.usageEvent.findMany({
-      where: { rentalId }
-    });
-
-    let totalCost = 0;
-    events.forEach(event => {
-      if (event.utilization) {
-        totalCost += event.utilization * 0.01; // $0.01 per utilization point
-      }
-      if (event.dataTransfer) {
-        totalCost += event.dataTransfer * 0.001; // $0.001 per MB
-      }
-    });
-
-    return totalCost;
-  }
-
-  async processSubscriptionBilling(subscriptionId: string): Promise<any> {
+  async processSubscriptionBilling(subscriptionId: string): Promise<ReturnType<typeof prisma.invoice.create>> {
     const subscription = await prisma.subscription.findUnique({
       where: { id: subscriptionId },
-      include: { plan: true, user: true }
+      include: { plan: true },
     });
+    if (!subscription) throw new Error(`Subscription ${subscriptionId} not found`);
 
-    if (!subscription) {
-      throw new Error('Subscription not found');
-    }
-
-    const invoiceNumber = `SUB-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     const amount = subscription.plan.monthlyPrice;
-    const tax = amount * 0.1;
-    const totalAmount = amount + tax;
+    const tax = parseFloat((amount * 0.1).toFixed(2));
+    const totalAmount = parseFloat((amount + tax).toFixed(2));
+    const invoiceNumber = `SUB-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
     const invoice = await prisma.invoice.create({
       data: {
@@ -81,11 +58,11 @@ export class BillingService {
         amount,
         tax,
         totalAmount,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      }
+        dueDate: new Date(Date.now() + 7 * 86_400_000),
+      },
     });
 
-    logger.info(`Subscription invoice generated: ${invoiceNumber}`);
+    logger.info(`Subscription invoice ${invoiceNumber} generated — $${totalAmount}`);
     return invoice;
   }
 }

@@ -15,21 +15,16 @@ export class AppError extends Error {
 
 export const errorHandler = (
   err: Error | AppError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
-) => {
+  _next: NextFunction
+): void => {
   if (err instanceof AppError) {
     logger.error(`${err.statusCode} - ${err.message}`, { stack: err.stack });
-    return res.status(err.statusCode).json({
-      error: err.message,
-      status: err.statusCode
-    });
+    res.status(err.statusCode).json({ error: err.message, status: err.statusCode });
+    return;
   }
 
   logger.error('Unexpected error:', err);
-  res.status(500).json({
-    error: 'Internal server error',
-    status: 500
-  });
+  res.status(500).json({ error: 'Internal server error', status: 500 });
 };
