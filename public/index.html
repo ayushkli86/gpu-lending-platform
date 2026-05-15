@@ -227,14 +227,22 @@
     let token = localStorage.getItem('token');
     let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
 
+    const errorBanner = document.createElement('div');
+    errorBanner.id = 'server-error-banner';
+    errorBanner.style.cssText = 'display:none;position:fixed;top:52px;left:0;right:0;background:#991b1b;color:#fff;text-align:center;padding:10px;font-size:13px;z-index:999;';
+    errorBanner.textContent = 'Server is unavailable. Please check that the server is running on port 3000.';
+    document.body.appendChild(errorBanner);
+
     async function checkStatus() {
         try {
             await fetch('http://localhost:3000/health');
             document.getElementById('status-dot').className = 'dot';
             document.getElementById('status-text').textContent = 'Connected';
+            document.getElementById('server-error-banner').style.display = 'none';
         } catch {
             document.getElementById('status-dot').className = 'dot offline';
             document.getElementById('status-text').textContent = 'Disconnected';
+            document.getElementById('server-error-banner').style.display = 'block';
         }
     }
 
