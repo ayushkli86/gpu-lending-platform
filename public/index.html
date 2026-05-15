@@ -6,477 +6,439 @@
     <title>GPU Lending Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { color: #667eea; margin-bottom: 10px; }
-        .status { display: inline-block; padding: 5px 15px; background: #10b981; color: white; border-radius: 20px; font-size: 14px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { background: white; padding: 15px 30px; border-radius: 10px; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .tab:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .tab.active { background: #667eea; color: white; }
-        .content { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; color: #1a1a2e; }
+
+        /* Top bar */
+        .topbar { background: #1a1a2e; color: #fff; padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; }
+        .topbar .brand { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+        .topbar .brand span { color: #7c83fd; }
+        .topbar .user-area { display: flex; align-items: center; gap: 16px; font-size: 14px; color: #aaa; }
+        .topbar .user-area strong { color: #fff; }
+        .btn-logout { background: transparent; border: 1px solid #555; color: #ccc; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .btn-logout:hover { border-color: #aaa; color: #fff; }
+
+        /* Status dot */
+        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-right: 6px; }
+        .dot.offline { background: #ef4444; }
+
+        /* Layout */
+        .layout { display: flex; min-height: calc(100vh - 52px); }
+
+        /* Sidebar */
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e5e7eb; padding: 24px 0; flex-shrink: 0; }
+        .nav-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #555; transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { background: #f5f5ff; color: #1a1a2e; }
+        .nav-item.active { background: #f0f0ff; color: #5a5fcf; font-weight: 600; border-left-color: #5a5fcf; }
+
+        /* Main content */
+        .main { flex: 1; padding: 32px 40px; }
+        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #1a1a2e; }
+        .page-subtitle { font-size: 14px; color: #888; margin-bottom: 28px; }
+
+        /* Cards */
+        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .card-title { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 10px; }
+        .card p { font-size: 13px; color: #666; margin-bottom: 6px; line-height: 1.6; }
+        .card p strong { color: #333; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: #5a5fcf; }
+        .stat-card .label { font-size: 13px; color: #888; margin-top: 4px; }
+
+        /* Forms */
+        .form-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 28px; max-width: 420px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; color: #1a1a2e; transition: border 0.2s; }
+        .form-group input:focus { outline: none; border-color: #5a5fcf; }
+
+        /* Buttons */
+        .btn { background: #5a5fcf; color: #fff; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: #4a4fbf; }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .btn-outline { background: transparent; border: 1px solid #5a5fcf; color: #5a5fcf; }
+        .btn-outline:hover { background: #f0f0ff; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+
+        /* Alerts */
+        .alert { padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 3px solid #10b981; }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 3px solid #ef4444; }
+
+        /* Section visibility */
         .section { display: none; }
         .section.active { display: block; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
-        .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; }
-        .btn:hover { background: #5568d3; transform: translateY(-2px); }
-        .btn-secondary { background: #6b7280; }
-        .btn-secondary:hover { background: #4b5563; }
-        .card { background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #667eea; }
-        .card h3 { color: #667eea; margin-bottom: 10px; }
-        .card p { color: #6b7280; margin-bottom: 5px; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
-        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
-        .hidden { display: none; }
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; }
-        .stat-card h2 { font-size: 36px; margin-bottom: 5px; }
-        .stat-card p { opacity: 0.9; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px 14px; background: #f9fafb; color: #555; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; color: #333; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🖥️ GPU Lending Platform</h1>
-            <span class="status" id="status">● Connecting...</span>
-            <span style="float: right; color: #6b7280;" id="user-info">Not logged in</span>
-            <button id="logout-btn" class="btn btn-secondary" style="display: none; float: right; margin-right: 10px; padding: 8px 20px;" onclick="logout()">Logout</button>
-        </div>
 
-        <div class="tabs">
-            <div class="tab active" onclick="showTab('login')">Login</div>
-            <div class="tab" onclick="showTab('register')">Register</div>
-            <div class="tab" onclick="showTab('gpus')">GPUs</div>
-            <div class="tab" onclick="showTab('rentals')">My Rentals</div>
-            <div class="tab" onclick="showTab('subscriptions')">Subscriptions</div>
-            <div class="tab" onclick="showTab('admin')">Admin</div>
-        </div>
+<div class="topbar">
+    <div class="brand">GPU Lending <span>Platform</span></div>
+    <div class="user-area">
+        <span><span class="dot" id="status-dot"></span><span id="status-text">Connecting</span></span>
+        <span id="user-info">Not signed in</span>
+        <button class="btn-logout" id="logout-btn" style="display:none" onclick="logout()">Sign out</button>
+    </div>
+</div>
 
-        <div class="content">
-            <!-- Login Section -->
-            <div id="login" class="section active">
-                <h2 style="margin-bottom: 20px;">Login</h2>
-                <div id="login-alert"></div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="login-email" placeholder="Enter your email" value="user@example.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password" value="user123">
-                </div>
-                <button class="btn" onclick="login()">Login</button>
-            </div>
-
-            <!-- Register Section -->
-            <div id="register" class="section">
-                <h2 style="margin-bottom: 20px;">Register</h2>
-                <div id="register-alert"></div>
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="register-name" placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="register-email" placeholder="Enter your email">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="register-password" placeholder="Enter your password (min 8 characters)">
-                </div>
-                <button class="btn" onclick="register()">Register</button>
-            </div>
-
-            <!-- GPUs Section -->
-            <div id="gpus" class="section">
-                <h2 style="margin-bottom: 20px;">Available GPUs</h2>
-                <div id="gpus-alert"></div>
-                <div id="gpus-list" class="grid"></div>
-            </div>
-
-            <!-- Rentals Section -->
-            <div id="rentals" class="section">
-                <h2 style="margin-bottom: 20px;">My Rentals</h2>
-                <div id="rentals-alert"></div>
-                <div id="rentals-list"></div>
-            </div>
-
-            <!-- Subscriptions Section -->
-            <div id="subscriptions" class="section">
-                <h2 style="margin-bottom: 20px;">Subscription Plans</h2>
-                <div id="subscriptions-alert"></div>
-                <div id="plans-list" class="grid"></div>
-            </div>
-
-            <!-- Admin Section -->
-            <div id="admin" class="section">
-                <h2 style="margin-bottom: 20px;">Admin Dashboard</h2>
-                <div id="admin-alert"></div>
-                <div class="stats" id="admin-stats"></div>
-                <div id="admin-content"></div>
-            </div>
-        </div>
+<div class="layout">
+    <div class="sidebar">
+        <div class="nav-item active" onclick="showTab('login')">Sign In</div>
+        <div class="nav-item" onclick="showTab('register')">Create Account</div>
+        <div class="nav-item" onclick="showTab('gpus')">GPU Inventory</div>
+        <div class="nav-item" onclick="showTab('compare')">Price Comparison</div>
+        <div class="nav-item" onclick="showTab('rentals')">My Rentals</div>
+        <div class="nav-item" onclick="showTab('subscriptions')">Plans</div>
+        <div class="nav-item" onclick="showTab('admin')">Admin</div>
     </div>
 
-    <script>
-        const API_URL = 'http://localhost:3000/api/v1';
-        let token = localStorage.getItem('token');
-        let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    <div class="main">
 
-        console.log('GPU Lending Platform UI Loaded');
-        console.log('API URL:', API_URL);
-        console.log('Stored token:', token ? 'Found' : 'None');
+        <!-- Sign In -->
+        <div id="login" class="section active">
+            <div class="page-title">Sign In</div>
+            <div class="page-subtitle">Access your GPU lending account</div>
+            <div id="login-alert"></div>
+            <div class="form-box">
+                <div class="form-group">
+                    <label>Email address</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" value="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Your password" value="user123">
+                </div>
+                <button class="btn" onclick="login()">Sign In</button>
+            </div>
+        </div>
 
-        // Cookie utilities
-        function setCookie(name, value, days = 7) {
-            const expires = new Date();
-            expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
-            console.log(`Cookie set: ${name}`);
+        <!-- Create Account -->
+        <div id="register" class="section">
+            <div class="page-title">Create Account</div>
+            <div class="page-subtitle">Register to start renting GPUs</div>
+            <div id="register-alert"></div>
+            <div class="form-box">
+                <div class="form-group">
+                    <label>Full name</label>
+                    <input type="text" id="register-name" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label>Email address</label>
+                    <input type="email" id="register-email" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="register-password" placeholder="Minimum 8 characters">
+                </div>
+                <button class="btn" onclick="register()">Create Account</button>
+            </div>
+        </div>
+
+        <!-- GPU Inventory -->
+        <div id="gpus" class="section">
+            <div class="page-title">GPU Inventory</div>
+            <div class="page-subtitle">All available and rented GPUs on the platform</div>
+            <div id="gpus-alert"></div>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Memory</th>
+                            <th>Compute</th>
+                            <th>Server</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gpus-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Price Comparison -->
+        <div id="compare" class="section">
+            <div class="page-title">Price Comparison</div>
+            <div class="page-subtitle">Compare GPU models by cost and specifications</div>
+            <div id="compare-alert"></div>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Memory</th>
+                            <th>Compute</th>
+                            <th>Hourly</th>
+                            <th>Daily</th>
+                            <th>Monthly</th>
+                            <th>Availability</th>
+                        </tr>
+                    </thead>
+                    <tbody id="compare-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- My Rentals -->
+        <div id="rentals" class="section">
+            <div class="page-title">My Rentals</div>
+            <div class="page-subtitle">Your active and past GPU rentals</div>
+            <div id="rentals-alert"></div>
+            <div id="rentals-list"></div>
+        </div>
+
+        <!-- Plans -->
+        <div id="subscriptions" class="section">
+            <div class="page-title">Subscription Plans</div>
+            <div class="page-subtitle">Choose a plan that fits your workload</div>
+            <div id="subscriptions-alert"></div>
+            <div class="grid" id="plans-list"></div>
+        </div>
+
+        <!-- Admin -->
+        <div id="admin" class="section">
+            <div class="page-title">Admin Dashboard</div>
+            <div class="page-subtitle">Platform overview and statistics</div>
+            <div id="admin-alert"></div>
+            <div class="stats" id="admin-stats"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:3000/api/v1';
+    let token = localStorage.getItem('token');
+    let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+
+    async function checkStatus() {
+        try {
+            await fetch('http://localhost:3000/health');
+            document.getElementById('status-dot').className = 'dot';
+            document.getElementById('status-text').textContent = 'Connected';
+        } catch {
+            document.getElementById('status-dot').className = 'dot offline';
+            document.getElementById('status-text').textContent = 'Disconnected';
         }
+    }
 
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for(let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
-        function deleteCookie(name) {
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-            console.log(`Cookie deleted: ${name}`);
-        }
-
-        // Initialize from cookies if available
-        if (!token) {
-            token = getCookie('auth_token');
-            if (token) {
-                localStorage.setItem('token', token);
-                console.log('Token restored from cookie');
-            }
-        }
-        if (!currentUser) {
-            const userCookie = getCookie('user_data');
-            if (userCookie) {
-                try {
-                    currentUser = JSON.parse(decodeURIComponent(userCookie));
-                    localStorage.setItem('user', JSON.stringify(currentUser));
-                    console.log('User data restored from cookie');
-                } catch (e) {
-                    console.error('Failed to parse user cookie');
-                }
-            }
-        }
-
-        // Check server status
-        async function checkStatus() {
-            try {
-                const res = await fetch('http://localhost:3000/health');
-                const data = await res.json();
-                document.getElementById('status').textContent = '● Connected';
-                document.getElementById('status').style.background = '#10b981';
-            } catch (error) {
-                document.getElementById('status').textContent = '● Disconnected';
-                document.getElementById('status').style.background = '#ef4444';
-            }
-        }
-
-        // Update UI based on login state
-        function updateLoginState() {
-            if (token && currentUser) {
-                document.getElementById('user-info').textContent = `Logged in as ${currentUser.name}`;
-                document.getElementById('logout-btn').style.display = 'inline-block';
-                // Auto-navigate to GPUs tab
-                setTimeout(() => {
-                    document.querySelectorAll('.tab')[2].click();
-                }, 100);
-            } else {
-                document.getElementById('user-info').textContent = 'Not logged in';
-                document.getElementById('logout-btn').style.display = 'none';
-            }
-        }
-
-        // Logout function
-        function logout() {
-            // Clear localStorage
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            
-            // Clear cookies
-            deleteCookie('auth_token');
-            deleteCookie('user_data');
-            deleteCookie('user_email');
-            deleteCookie('login_time');
-            
-            token = null;
-            currentUser = null;
-            document.getElementById('user-info').textContent = 'Not logged in';
+    function updateLoginState() {
+        if (token && currentUser) {
+            document.getElementById('user-info').textContent = currentUser.name + ' (' + currentUser.role + ')';
+            document.getElementById('logout-btn').style.display = 'inline-block';
+        } else {
+            document.getElementById('user-info').textContent = 'Not signed in';
             document.getElementById('logout-btn').style.display = 'none';
-            document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Logged out successfully! All cookies cleared.</div>';
-            
-            console.log('Session cleared from localStorage and cookies');
-            
-            // Navigate to login tab
-            document.querySelectorAll('.tab')[0].click();
         }
+    }
 
-        // Tab switching
-        function showTab(tabName) {
-            console.log('Switching to tab:', tabName);
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            
-            // Find and activate the clicked tab
-            const tabs = document.querySelectorAll('.tab');
-            const tabNames = ['login', 'register', 'gpus', 'rentals', 'subscriptions', 'admin'];
-            const index = tabNames.indexOf(tabName);
-            if (index >= 0 && tabs[index]) {
-                tabs[index].classList.add('active');
-            }
-
-            if (tabName === 'gpus') loadGPUs();
-            if (tabName === 'rentals') loadRentals();
-            if (tabName === 'subscriptions') loadPlans();
-            if (tabName === 'admin') loadAdmin();
-        }
-
-        // Login
-        async function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            console.log('Attempting login...', { email });
-            
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                console.log('Response status:', res.status);
-                const data = await res.json();
-                console.log('Response data:', data);
-                
-                if (res.ok) {
-                    token = data.token;
-                    currentUser = data.user;
-                    
-                    // Save to localStorage
-                    localStorage.setItem('token', token);
-                    localStorage.setItem('user', JSON.stringify(currentUser));
-                    
-                    // Save to cookies (7 days expiry)
-                    setCookie('auth_token', token, 7);
-                    setCookie('user_data', encodeURIComponent(JSON.stringify(currentUser)), 7);
-                    setCookie('user_email', currentUser.email, 7);
-                    setCookie('login_time', new Date().toISOString(), 7);
-                    
-                    console.log('Session saved to localStorage and cookies');
-                    
-                    document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">✅ Login successful! Session active with cookies.</div>';
-                    updateLoginState();
-                } else {
-                    document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">❌ ${data.error || 'Login failed'}</div>`;
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">❌ Connection error: ${error.message}</div>`;
-            }
-        }
-
-        // Register
-        async function register() {
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            
-            try {
-                const res = await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
-                });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    document.getElementById('register-alert').innerHTML = '<div class="alert alert-success">Registration successful! Please login.</div>';
-                    setTimeout(() => showTab('login'), 2000);
-                } else {
-                    document.getElementById('register-alert').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
-                }
-            } catch (error) {
-                document.getElementById('register-alert').innerHTML = '<div class="alert alert-error">Connection error</div>';
-            }
-        }
-
-        // Load GPUs
-        async function loadGPUs() {
-            if (!token) {
-                document.getElementById('gpus-alert').innerHTML = '<div class="alert alert-error">Please login first</div>';
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/gpus`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                
-                const list = document.getElementById('gpus-list');
-                list.innerHTML = data.gpus.map(gpu => `
-                    <div class="card">
-                        <h3>${gpu.model}</h3>
-                        <p><strong>Memory:</strong> ${gpu.memory} MB</p>
-                        <p><strong>Server:</strong> ${gpu.server?.name || 'N/A'}</p>
-                        <p><strong>Status:</strong> <span class="badge badge-${gpu.status === 'AVAILABLE' ? 'success' : 'warning'}">${gpu.status}</span></p>
-                        <p><strong>Compute:</strong> ${gpu.computeCapability}</p>
-                    </div>
-                `).join('');
-            } catch (error) {
-                document.getElementById('gpus-alert').innerHTML = '<div class="alert alert-error">Failed to load GPUs</div>';
-            }
-        }
-
-        // Load Rentals
-        async function loadRentals() {
-            if (!token) {
-                document.getElementById('rentals-alert').innerHTML = '<div class="alert alert-error">Please login first</div>';
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/rentals/my-rentals`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                
-                const list = document.getElementById('rentals-list');
-                if (data.rentals.length === 0) {
-                    list.innerHTML = '<p style="color: #6b7280;">No rentals yet</p>';
-                } else {
-                    list.innerHTML = data.rentals.map(rental => `
-                        <div class="card">
-                            <h3>Rental #${rental.id.substring(0, 8)}</h3>
-                            <p><strong>GPU:</strong> ${rental.gpu?.model || 'Cluster'}</p>
-                            <p><strong>Status:</strong> <span class="badge badge-${rental.status === 'ACTIVE' ? 'success' : 'warning'}">${rental.status}</span></p>
-                            <p><strong>Start:</strong> ${new Date(rental.startTime).toLocaleString()}</p>
-                            <p><strong>Rate:</strong> $${rental.hourlyRate}/hour</p>
-                        </div>
-                    `).join('');
-                }
-            } catch (error) {
-                document.getElementById('rentals-alert').innerHTML = '<div class="alert alert-error">Failed to load rentals</div>';
-            }
-        }
-
-        // Load Plans
-        async function loadPlans() {
-            try {
-                const res = await fetch(`${API_URL}/subscriptions/plans`);
-                const data = await res.json();
-                
-                const list = document.getElementById('plans-list');
-                list.innerHTML = data.plans.map(plan => `
-                    <div class="card">
-                        <h3>${plan.name}</h3>
-                        <p>${plan.description || 'No description'}</p>
-                        <p><strong>Price:</strong> $${plan.monthlyPrice}/month</p>
-                        <p><strong>GPUs:</strong> ${plan.gpuAllocation}</p>
-                        <button class="btn" onclick="subscribe('${plan.id}')">Subscribe</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                document.getElementById('subscriptions-alert').innerHTML = '<div class="alert alert-error">Failed to load plans</div>';
-            }
-        }
-
-        // Subscribe
-        async function subscribe(planId) {
-            if (!token) {
-                alert('Please login first');
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/subscriptions`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ planId })
-                });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    alert('Subscription successful!');
-                    loadPlans();
-                } else {
-                    alert(data.error);
-                }
-            } catch (error) {
-                alert('Failed to subscribe');
-            }
-        }
-
-        // Load Admin
-        async function loadAdmin() {
-            if (!token) {
-                document.getElementById('admin-alert').innerHTML = '<div class="alert alert-error">Please login first</div>';
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                
-                document.getElementById('admin-stats').innerHTML = `
-                    <div class="stat-card">
-                        <h2>${data.totalUsers}</h2>
-                        <p>Total Users</p>
-                    </div>
-                    <div class="stat-card">
-                        <h2>${data.totalGPUs}</h2>
-                        <p>Total GPUs</p>
-                    </div>
-                    <div class="stat-card">
-                        <h2>${data.activeRentals}</h2>
-                        <p>Active Rentals</p>
-                    </div>
-                    <div class="stat-card">
-                        <h2>$${data.totalRevenue.toFixed(2)}</h2>
-                        <p>Total Revenue</p>
-                    </div>
-                `;
-            } catch (error) {
-                document.getElementById('admin-alert').innerHTML = '<div class="alert alert-error">Access denied or failed to load</div>';
-            }
-        }
-
-        // Initialize
-        checkStatus();
-        setInterval(checkStatus, 5000);
-        
-        // Check if user is already logged in
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        token = null;
+        currentUser = null;
         updateLoginState();
-    </script>
+        showTab('login');
+    }
+
+    function showTab(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(name).classList.add('active');
+        const tabs = ['login','register','gpus','compare','rentals','subscriptions','admin'];
+        const idx = tabs.indexOf(name);
+        if (idx >= 0) document.querySelectorAll('.nav-item')[idx].classList.add('active');
+        if (name === 'gpus') loadGPUs();
+        if (name === 'compare') loadCompare();
+        if (name === 'rentals') loadRentals();
+        if (name === 'subscriptions') loadPlans();
+        if (name === 'admin') loadAdmin();
+    }
+
+    async function login() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                document.getElementById('login-alert').innerHTML = '<div class="alert alert-success">Signed in successfully.</div>';
+                updateLoginState();
+                setTimeout(() => showTab('gpus'), 800);
+            } else {
+                document.getElementById('login-alert').innerHTML = `<div class="alert alert-error">${data.error || 'Sign in failed.'}</div>`;
+            }
+        } catch {
+            document.getElementById('login-alert').innerHTML = '<div class="alert alert-error">Could not connect to server.</div>';
+        }
+    }
+
+    async function register() {
+        const name = document.getElementById('register-name').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        try {
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('register-alert').innerHTML = '<div class="alert alert-success">Account created. Please sign in.</div>';
+                setTimeout(() => showTab('login'), 1500);
+            } else {
+                document.getElementById('register-alert').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+            }
+        } catch {
+            document.getElementById('register-alert').innerHTML = '<div class="alert alert-error">Connection error.</div>';
+        }
+    }
+
+    async function loadGPUs() {
+        if (!token) { document.getElementById('gpus-alert').innerHTML = '<div class="alert alert-error">Please sign in first.</div>'; return; }
+        try {
+            const res = await fetch(`${API_URL}/gpus`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            document.getElementById('gpus-list').innerHTML = data.gpus.map(g => `
+                <tr>
+                    <td><strong>${g.model}</strong></td>
+                    <td>${(g.memory / 1024).toFixed(0)} GB</td>
+                    <td>${g.computeCapability}</td>
+                    <td>${g.server?.name || 'N/A'}</td>
+                    <td>${g.server?.location || 'N/A'}</td>
+                    <td><span class="badge ${g.status === 'AVAILABLE' ? 'badge-green' : 'badge-yellow'}">${g.status}</span></td>
+                </tr>
+            `).join('');
+        } catch {
+            document.getElementById('gpus-alert').innerHTML = '<div class="alert alert-error">Failed to load GPU inventory.</div>';
+        }
+    }
+
+    async function loadCompare() {
+        try {
+            const res = await fetch(`${API_URL}/gpus/compare`);
+            const data = await res.json();
+            document.getElementById('compare-list').innerHTML = data.comparison.map(g => `
+                <tr>
+                    <td><strong>${g.model}</strong></td>
+                    <td>${(g.memory / 1024).toFixed(0)} GB</td>
+                    <td>${g.computeCapability}</td>
+                    <td>$${g.hourlyRate.toFixed(2)}</td>
+                    <td>$${g.dailyRate.toFixed(2)}</td>
+                    <td>$${g.monthlyRate.toFixed(2)}</td>
+                    <td><span class="badge ${g.availability === 'HIGH' ? 'badge-green' : g.availability === 'MEDIUM' ? 'badge-blue' : 'badge-yellow'}">${g.availability}</span></td>
+                </tr>
+            `).join('');
+        } catch {
+            document.getElementById('compare-alert').innerHTML = '<div class="alert alert-error">Failed to load pricing data.</div>';
+        }
+    }
+
+    async function loadRentals() {
+        if (!token) { document.getElementById('rentals-alert').innerHTML = '<div class="alert alert-error">Please sign in first.</div>'; return; }
+        try {
+            const res = await fetch(`${API_URL}/rentals/my-rentals`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const list = document.getElementById('rentals-list');
+            if (!data.rentals.length) {
+                list.innerHTML = '<p style="color:#888;font-size:14px;">No rentals found.</p>';
+            } else {
+                list.innerHTML = data.rentals.map(r => `
+                    <div class="card">
+                        <div class="card-title">Rental ${r.id.substring(0, 8)}</div>
+                        <p><strong>GPU:</strong> ${r.gpu?.model || 'Cluster'}</p>
+                        <p><strong>Status:</strong> <span class="badge ${r.status === 'ACTIVE' ? 'badge-green' : 'badge-yellow'}">${r.status}</span></p>
+                        <p><strong>Started:</strong> ${new Date(r.startTime).toLocaleString()}</p>
+                        <p><strong>Rate:</strong> $${r.hourlyRate}/hour</p>
+                    </div>
+                `).join('');
+            }
+        } catch {
+            document.getElementById('rentals-alert').innerHTML = '<div class="alert alert-error">Failed to load rentals.</div>';
+        }
+    }
+
+    async function loadPlans() {
+        try {
+            const res = await fetch(`${API_URL}/subscriptions/plans`);
+            const data = await res.json();
+            document.getElementById('plans-list').innerHTML = data.plans.map(p => `
+                <div class="card">
+                    <div class="card-title">${p.name}</div>
+                    <p>${p.description || ''}</p>
+                    <p style="margin-top:10px;"><strong>$${p.monthlyPrice}</strong> / month</p>
+                    <p><strong>${p.gpuAllocation}</strong> GPU allocation</p>
+                    <button class="btn btn-sm" style="margin-top:14px;" onclick="subscribe('${p.id}')">Select Plan</button>
+                </div>
+            `).join('');
+        } catch {
+            document.getElementById('subscriptions-alert').innerHTML = '<div class="alert alert-error">Failed to load plans.</div>';
+        }
+    }
+
+    async function subscribe(planId) {
+        if (!token) { alert('Please sign in first.'); return; }
+        try {
+            const res = await fetch(`${API_URL}/subscriptions`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('subscriptions-alert').innerHTML = '<div class="alert alert-success">Subscription activated.</div>';
+            } else {
+                document.getElementById('subscriptions-alert').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+            }
+        } catch {
+            document.getElementById('subscriptions-alert').innerHTML = '<div class="alert alert-error">Failed to subscribe.</div>';
+        }
+    }
+
+    async function loadAdmin() {
+        if (!token) { document.getElementById('admin-alert').innerHTML = '<div class="alert alert-error">Please sign in first.</div>'; return; }
+        try {
+            const res = await fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            document.getElementById('admin-stats').innerHTML = `
+                <div class="stat-card"><div class="value">${data.totalUsers}</div><div class="label">Total Users</div></div>
+                <div class="stat-card"><div class="value">${data.totalGPUs}</div><div class="label">Total GPUs</div></div>
+                <div class="stat-card"><div class="value">${data.activeRentals}</div><div class="label">Active Rentals</div></div>
+                <div class="stat-card"><div class="value">$${data.totalRevenue.toFixed(0)}</div><div class="label">Total Revenue</div></div>
+            `;
+        } catch {
+            document.getElementById('admin-alert').innerHTML = '<div class="alert alert-error">Failed to load admin data.</div>';
+        }
+    }
+
+    checkStatus();
+    setInterval(checkStatus, 5000);
+    updateLoginState();
+</script>
 </body>
 </html>
