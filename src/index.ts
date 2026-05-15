@@ -40,7 +40,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 if (USE_MOCK) {
-  logger.info('🎭 Using MOCK data (database not required)');
+  logger.info('Running in test mode (no database required)');
   app.use('/api/v1', mockRoutes);
 } else {
   app.use('/api/v1/auth', authRoutes);
@@ -66,8 +66,8 @@ if (USE_MOCK) {
       .method{display:inline-block;padding:5px 10px;border-radius:5px;color:white;font-weight:bold;}
       .get{background:#61affe;}.post{background:#49cc90;}</style></head>
       <body><div class="container">
-      <h1>🖥️ GPU Lending Platform API</h1>
-      <p>Mock Mode - All endpoints available at <code>http://localhost:3000/api/v1</code></p>
+      <h1>GPU Lending Platform API</h1>
+      <p>Test Mode - All endpoints available at <code>http://localhost:3000/api/v1</code></p>
       <h2>Authentication</h2>
       <div class="endpoint"><span class="method post">POST</span> /auth/login - Login user</div>
       <div class="endpoint"><span class="method post">POST</span> /auth/register - Register user</div>
@@ -98,8 +98,8 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  logger.info(`🚀 GPU Lending Platform running on port ${PORT}`);
-  logger.info(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+  logger.info(`GPU Lending Platform running on port ${PORT}`);
+  logger.info(`API Documentation: http://localhost:${PORT}/api-docs`);
 });
 
 export default app;
